@@ -521,7 +521,7 @@ class Document(SchemaDocument):
                                 l_objs.append(obj)
                             doc[key] = l_objs
                         elif isinstance(struct[key][0], dict):
-                            if doc[key]:
+                            if key in doc:
                                 for obj in doc[key]:
                                     _convert_to_python(obj, struct[key][0])
                 else:
@@ -579,7 +579,7 @@ class Document(SchemaDocument):
                                 l_objs.append(obj)
                             doc[key] = l_objs
                         elif isinstance(struct[key][0], dict):
-                            if doc[key]:
+                            if key in doc:
                                 for obj in doc[key]:
                                     _convert_to_python(obj, struct[key][0], new_path, root_path)
                 elif struct[key] is datetime.datetime and doc[key] is not None:
@@ -601,18 +601,23 @@ class Document(SchemaDocument):
                     #_id = obj_class(doc[key], collection=self.connection[db][col])[id_ref]
                     _id = doc[key][id_ref]
                     doc[key] = getattr(self.connection[db][col], obj_class.__name__).one({'_id': _id})
-        try:
-            from json import loads
-        except ImportError:
-            from anyjson import deserialize as loads
-        except ImportError:
-            raise ImportError("can't import anyjson. Please install it before continuing.")
-        obj = loads(json)
+
+        if isinstance(json, basestring):
+            try:
+                from json import loads
+            except ImportError:
+                from anyjson import deserialize as loads
+            except ImportError:
+                raise ImportError("can't import anyjson. Please install it before continuing.")
+            obj = loads(json)
+        else:
+            obj = json  # assume object is json_type
         _convert_to_python(obj, self.structure)
         if '_id' in obj:
             if '$oid' in obj['_id']:
                 obj['_id'] = ObjectId(obj['_id']['$oid'])
         return self._obj_class(obj, collection=self.collection)
+
 
     #
     # End of public API

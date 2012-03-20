@@ -721,7 +721,6 @@ class JsonTestCase(unittest.TestCase):
         mydoc_from_json = self.col.MyDoc.from_json(json)
         assert mydoc == mydoc_from_json, (mydoc, mydoc_from_json)
  
- 
     def test_from_json_with_null_date(self):
         class MyDoc(Document):
             structure = {
@@ -735,3 +734,53 @@ class JsonTestCase(unittest.TestCase):
         assert mydoc_from_json['_id'] == 'a'
         assert mydoc_from_json['date'] is None
         assert mydoc_from_json['date_in_list'] == []
+
+    def test_from_json_with_field_missing_in_structure(self):
+        class MyDoc(Document):
+            structure = {
+                'one': unicode,
+                'another': bool,
+                'missingarray': [{'anInt': int}],
+            }
+        self.connection.register([MyDoc])
+
+        json = '{"one": "value", "another" : false}'
+        doc = self.col.MyDoc.from_json(json)
+        assert doc['one'] == 'value'
+        doc.validate()
+
+    def test_from_json_with_required_field_missing_in_structure(self):
+        class MyDoc(Document):
+            structure = {
+                'one': unicode,
+                'another': bool,
+                'missingarray': [{'anInt': int}],
+            }
+
+            required_fields = ['another']
+
+        self.connection.register([MyDoc])
+
+        json = '{"one": "value"}'
+        doc = self.col.MyDoc.from_json(json)
+        assert doc['one'] == 'value'
+        try:
+            doc.validate()
+        except StructureError:
+            pass
+        else:
+            self.fail('Should have thrown')
+
+    def test_from_json_with_json_type(self):
+        class MyDoc(Document):
+            structure = {
+                'one': unicode,
+                'another': bool,
+                'array': [{'anInt': int}],
+            }
+        self.connection.register([MyDoc])
+
+        json_type = {'one': u'test', 'another': True, 'array': [{'anInt': 0}] }
+        doc = self.col.MyDoc.from_json(json_type)
+        assert doc['one'] == 'test'
+        doc.save()
