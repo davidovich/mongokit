@@ -611,7 +611,7 @@ class Document(SchemaDocument):
                 raise ImportError("can't import anyjson. Please install it before continuing.")
             obj = loads(json)
         else:
-            obj = json  # assume object is json_type
+            raise TypeError("json object should be a json parsable string or a json_type (python type json compatible)")
         _convert_to_python(obj, self.structure)
         if '_id' in obj:
             if '$oid' in obj['_id']:
