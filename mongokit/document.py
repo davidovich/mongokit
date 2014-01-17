@@ -614,7 +614,7 @@ class Document(SchemaDocument):
             raise TypeError("json object should be a json parsable string or a json_type (python type json compatible)")
         _convert_to_python(obj, self.structure)
         if '_id' in obj:
-            if '$oid' in obj['_id']:
+            if isinstance(obj['_id'], dict) and '$oid' in obj['_id']:
                 obj['_id'] = ObjectId(obj['_id']['$oid'])
         return self._obj_class(obj, collection=self.collection)
 
