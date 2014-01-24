@@ -1,3 +1,15 @@
+## MongoKit-Py3 [![Build Status](https://travis-ci.org/aquavitae/mongokit-py3.png?branch=master)](https://travis-ci.org/aquavitae/mongokit-py3)
+
+This is a fork of [MongoKit](https://github.com/namlook/mongokit) for Python 3. The readme below is taken directly from 
+that project, and all the documentation can be view there, with the following differences:
+
+ * All references to ``unicode`` have been replaced with ``str``.
+ * ``basestring`` does not exist in Python 3, so it has mostly been replaced with ``bytes``, except for a few cases 
+   where it is obvious from the context that ``str`` was intended instead.
+ * Data stored in GridFS must be ``bytes``.  If a ``str`` is used, it should be encoded to ``bytes`` first.
+
+*--- Original Readme follows ---*
+
 # MongoKit [![Build Status](https://travis-ci.org/namlook/mongokit.png)](https://travis-ci.org/namlook/mongokit.png)
 
 [MongoDB](http://www.mongodb.org/display/DOCS/Home) is a great schema-less document oriented database. It has a lot of drivers for many languages (python, ruby, perl, java, php...).

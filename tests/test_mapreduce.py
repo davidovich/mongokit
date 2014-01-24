@@ -60,5 +60,5 @@ class MapReduceTestCase(unittest.TestCase):
         r = 'function(k,vals) { return 1; }'
         mapcol = self.col.map_reduce(m,r,"testresults")
         mapdoc = mapcol.MapDoc.find_one()
-        assert mapdoc == {u'_id': 0.0, u'value': 1.0}, mapdoc
+        assert mapdoc == {'_id': 0.0, 'value': 1.0}, mapdoc
         assert isinstance(mapdoc, MapDoc)

@@ -25,11 +25,15 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import print_function
+
 import unittest
 
 from mongokit import *
 from mongokit.auth import User
 from bson.objectid import ObjectId
+
+import six
 
 import logging
 logging.basicConfig()
@@ -48,7 +52,7 @@ class AuthTestCase(unittest.TestCase):
         self.connection.register([SimpleUser])
 
         user = self.col.SimpleUser()
-        user.login = u"user"
+        user.login = "user"
         self.assertRaises(RequireFieldError, user.validate)
         user.password = "myp4$$ord"
 
@@ -65,25 +69,25 @@ class AuthTestCase(unittest.TestCase):
         self.connection.register([SimpleUser])
 
         user = self.col.SimpleUser()
-        user.login = u"user"
-        user.email = u"user@foo.bar"
-        user.password = u"u$ser_p4$$w0rd"
-        print "°°°°°°°°°", user
+        user.login = "user"
+        user.email = "user@foo.bar"
+        user.password = "u$ser_p4$$w0rd"
+        print("°°°°°°°°°", user)
         user.save()
 
         saved_user = self.col.SimpleUser.get_from_id('user')
         assert saved_user.verify_password("bad") == False
-        assert saved_user.verify_password(u"u$ser_p4$$w0rd") == True
+        assert saved_user.verify_password("u$ser_p4$$w0rd") == True
 
-        assert user.login == u"user"
-        assert user['_id'] == u'user'
-        assert user['user']['login'] == u'user'
+        assert user.login == "user"
+        assert user['_id'] == 'user'
+        assert user['user']['login'] == 'user'
         del user.login
         assert user['_id'] is None
         assert user['user']['login'] is None
         assert user.login is None
 
-        assert user.email == user['user']['email'] == u'user@foo.bar'
+        assert user.email == user['user']['email'] == 'user@foo.bar'
         del user.email
         assert user['user']['email'] is None
         assert user.email is None
@@ -92,17 +96,17 @@ class AuthTestCase(unittest.TestCase):
         class SimpleUser(User):
             structure = {
                 "auth":{
-                    "session_id":unicode,
+                    "session_id":str,
                 },
                 "profil":{
-                    "name":unicode,
+                    "name":str,
                 }
             }
         self.connection.register([SimpleUser])
 
         user = self.col.SimpleUser()
-        user.login = u"user"
-        user.email = u"user@foo.bar"
+        user.login = "user"
+        user.email = "user@foo.bar"
         user.password = "u$ser_p4$$w0rd"
         user.save()
 

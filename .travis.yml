@@ -1,11 +1,11 @@
 language: python
 
 python:
-  - 2.6
-  - 2.7
+  - 3.2
+  - 3.3
 
 before_install:
-    pip install --use-mirrors nose unittest2 pymongo
+    pip install --use-mirrors six nose pymongo
 
 install:
   - python setup.py install

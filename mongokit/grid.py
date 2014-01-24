@@ -65,7 +65,7 @@ class FS(GridFS):
         try:
             self.put(value, **spec)
         except TypeError:
-            raise TypeError("GridFS value mus be string not %s" % type(value))
+            raise TypeError("GridFS value must be bytes not %s" % type(value))
 
     def __getattr__(self, key):
         if not key.startswith('_'):

@@ -25,9 +25,13 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import print_function
+
 import unittest
 
 from mongokit import Connection, Document, OperationFailure, BadIndexError, INDEX_GEO2D, INDEX_ASCENDING, INDEX_DESCENDING
+
+import six
 
 class IndexTestCase(unittest.TestCase):
     def setUp(self):
@@ -41,11 +45,11 @@ class IndexTestCase(unittest.TestCase):
     def test_index_basic(self):
         class Movie(Document):
             structure = {
-                'standard':unicode,
+                'standard':str,
                 'other':{
-                    'deep':unicode,
+                    'deep':str,
                 },
-                'notindexed':unicode,
+                'notindexed':str,
             }
 
             indexes = [
@@ -57,9 +61,9 @@ class IndexTestCase(unittest.TestCase):
         self.connection.register([Movie])
         movie = self.col.Movie()
         self.col.Movie.generate_index(self.col.Movie.collection)
-        movie['standard'] = u'test'
-        movie['other']['deep'] = u'testdeep'
-        movie['notindexed'] = u'notthere'
+        movie['standard'] = 'test'
+        movie['other']['deep'] = 'testdeep'
+        movie['notindexed'] = 'notthere'
         movie.save()
 
         db = self.connection.test
@@ -67,14 +71,14 @@ class IndexTestCase(unittest.TestCase):
         assert item is not None, 'No Index Found'
 
         movie = self.col.Movie()
-        movie['standard'] = u'test'
-        movie['other']['deep'] = u'testdeep'
+        movie['standard'] = 'test'
+        movie['other']['deep'] = 'testdeep'
         self.assertRaises(OperationFailure, movie.save)
 
     def test_index_single_without_generation(self):
         class Movie(Document):
             structure = {
-                'standard':unicode,
+                'standard':str,
             }
 
             indexes = [
@@ -85,7 +89,7 @@ class IndexTestCase(unittest.TestCase):
             ]
         self.connection.register([Movie])
         movie = self.col.Movie()
-        movie['standard'] = u'test'
+        movie['standard'] = 'test'
         movie.save()
 
         db = self.connection.test
@@ -96,7 +100,7 @@ class IndexTestCase(unittest.TestCase):
     def test_index_single(self):
         class Movie(Document):
             structure = {
-                'standard':unicode,
+                'standard':str,
             }
 
             indexes = [
@@ -108,7 +112,7 @@ class IndexTestCase(unittest.TestCase):
         self.connection.register([Movie])
         self.col.Movie.generate_index(self.col.Movie.collection)
         movie = self.col.Movie()
-        movie['standard'] = u'test'
+        movie['standard'] = 'test'
         movie.save()
 
         db = self.connection.test
@@ -119,12 +123,12 @@ class IndexTestCase(unittest.TestCase):
     def test_index_multi(self):
         class Movie(Document):
             structure = {
-                'standard':unicode,
+                'standard':str,
                 'other':{
-                    'deep':unicode,
+                    'deep':str,
                 },
-                'notindexed':unicode,
-                'alsoindexed':unicode,
+                'notindexed':str,
+                'alsoindexed':str,
             }
 
             indexes = [
@@ -140,7 +144,7 @@ class IndexTestCase(unittest.TestCase):
         self.connection.register([Movie])
         self.col.Movie.generate_index(self.col.Movie.collection)
         movie = self.col.Movie()
-        movie['standard'] = u'test'
+        movie['standard'] = 'test'
         movie.save()
 
         db = self.connection.test
@@ -151,18 +155,18 @@ class IndexTestCase(unittest.TestCase):
         assert index2 is not None, 'Index not found'
 
         movie = self.col.Movie()
-        movie['standard'] = u'test'
+        movie['standard'] = 'test'
         self.assertRaises(OperationFailure, movie.save)
 
     def test_index_multi2(self):
         class Movie(Document):
             structure = {
-                'standard':unicode,
+                'standard':str,
                 'other':{
-                    'deep':unicode,
+                    'deep':str,
                 },
-                'notindexed':unicode,
-                'alsoindexed':unicode,
+                'notindexed':str,
+                'alsoindexed':str,
             }
 
             indexes = [
@@ -178,8 +182,8 @@ class IndexTestCase(unittest.TestCase):
         self.connection.register([Movie])
         self.col.Movie.generate_index(self.col.Movie.collection)
         movie = self.col.Movie()
-        movie['standard'] = u'test'
-        movie['other']['deep'] = u'foo'
+        movie['standard'] = 'test'
+        movie['other']['deep'] = 'foo'
         movie.save()
 
         db = self.connection.test
@@ -190,22 +194,22 @@ class IndexTestCase(unittest.TestCase):
         assert index2 is not None, 'Index not found'
 
         movie = self.col.Movie()
-        movie['standard'] = u'test'
+        movie['standard'] = 'test'
         self.assertRaises(OperationFailure, movie.save)
 
         movie = self.col.Movie()
-        movie['other']['deep'] = u'foo'
+        movie['other']['deep'] = 'foo'
         self.assertRaises(OperationFailure, movie.save)
 
     def test_index_direction(self):
         class Movie(Document):
             structure = {
-                'standard':unicode,
+                'standard':str,
                 'other':{
-                    'deep':unicode,
+                    'deep':str,
                 },
-                'notindexed':unicode,
-                'alsoindexed':unicode,
+                'notindexed':str,
+                'alsoindexed':str,
             }
 
             indexes = [
@@ -221,7 +225,7 @@ class IndexTestCase(unittest.TestCase):
         self.connection.register([Movie])
         self.col.Movie.generate_index(self.col.Movie.collection)
         movie = self.col.Movie()
-        movie['standard'] = u'test'
+        movie['standard'] = 'test'
         movie.save()
 
         db = self.connection.test
@@ -234,12 +238,12 @@ class IndexTestCase(unittest.TestCase):
     def test_index_direction_GEO2D(self):
         class Movie(Document):
             structure = {
-                'standard':unicode,
+                'standard':str,
                 'other':{
-                    'deep':unicode,
+                    'deep':str,
                 },
-                'notindexed':unicode,
-                'alsoindexed':unicode,
+                'notindexed':str,
+                'alsoindexed':str,
             }
 
             indexes = [
@@ -255,7 +259,7 @@ class IndexTestCase(unittest.TestCase):
         self.connection.register([Movie])
         self.col.Movie.generate_index(self.col.Movie.collection)
         movie = self.col.Movie()
-        movie['standard'] = u'test'
+        movie['standard'] = 'test'
         movie.save()
 
         db = self.connection.test
@@ -269,9 +273,9 @@ class IndexTestCase(unittest.TestCase):
         failed = False
         try:
             class Movie(Document):
-                structure = {'standard':unicode}
+                structure = {'standard':str}
                 indexes = [{'unique':True}]
-        except BadIndexError, e:
+        except BadIndexError as e:
             self.assertEqual(str(e), "'fields' key must be specify in indexes")
             failed = True
         self.assertEqual(failed, True)
@@ -280,7 +284,7 @@ class IndexTestCase(unittest.TestCase):
         try:
             class Movie(Document):
                 structure = {
-                    'standard':unicode,
+                    'standard':str,
                 }
                 indexes = [
                     {
@@ -288,7 +292,7 @@ class IndexTestCase(unittest.TestCase):
                         'uniq':True,
                     },
                 ]
-        except BadIndexError, e:
+        except BadIndexError as e:
             self.assertEqual(str(e), "uniq is unknown key for indexes")
             failed = True
         #self.assertEqual(failed, True)
@@ -297,14 +301,14 @@ class IndexTestCase(unittest.TestCase):
         try:
             class Movie(Document):
                 structure = {
-                    'standard':unicode,
+                    'standard':str,
                 }
                 indexes = [
                     {
                         'fields':'std',
                     },
                 ]
-        except ValueError, e:
+        except ValueError as e:
             self.assertEqual(str(e), "Error in indexes: can't find std in structure")
             failed = True
         self.assertEqual(failed, True)
@@ -313,15 +317,15 @@ class IndexTestCase(unittest.TestCase):
         try:
             class Movie(Document):
                 structure = {
-                    'standard':unicode,
+                    'standard':str,
                 }
                 indexes = [
                     {
                         'fields':{'standard':1},
                     },
                 ]
-        except BadIndexError, e:
-            self.assertEqual(str(e), "fields must be a string, a tuple or a list of tuple (got <type 'dict'> instead)")
+        except BadIndexError as e:
+            self.assertEqual(str(e), "fields must be a string, a tuple or a list of tuple (got <%s 'dict'> instead)" % ('type' if six.PY2 else 'class'))
             failed = True
         self.assertEqual(failed, True)
 
@@ -329,14 +333,14 @@ class IndexTestCase(unittest.TestCase):
         try:
             class Movie(Document):
                 structure = {
-                    'standard':unicode,
+                    'standard':str,
                 }
                 indexes = [
                     {
                         'fields':('standard',1, "blah"),
                     },
                 ]
-        except BadIndexError, e:
+        except BadIndexError as e:
             self.assertEqual(str(e), "Error in indexes: a tuple must contain only two value : the field name and the direction")
             failed = True
         self.assertEqual(failed, True)
@@ -345,14 +349,14 @@ class IndexTestCase(unittest.TestCase):
         try:
             class Movie(Document):
                 structure = {
-                    'standard':unicode,
+                    'standard':str,
                 }
                 indexes = [
                     {
                         'fields':('standard',"2"),
                     },
                 ]
-        except BadIndexError, e:
+        except BadIndexError as e:
             self.assertEqual(str(e), "index direction must be INDEX_DESCENDING, INDEX_ASCENDING, INDEX_OFF, INDEX_ALL, INDEX_GEO2D, INDEX_GEOHAYSTACK, or INDEX_GEOSPHERE. Got 2")
             failed = True
         self.assertEqual(failed, True)
@@ -361,15 +365,15 @@ class IndexTestCase(unittest.TestCase):
         try:
             class Movie(Document):
                 structure = {
-                    'standard':unicode,
+                    'standard':str,
                 }
                 indexes = [
                     {
                         'fields':(3,1),
                     },
                 ]
-        except BadIndexError, e:
-            self.assertEqual(str(e), "Error in 3, the field name must be string (got <type 'int'> instead)")
+        except BadIndexError as e:
+            self.assertEqual(str(e), "Error in 3, the field name must be string (got <%s 'int'> instead)" % ('type' if six.PY2 else 'class'))
             failed = True
         self.assertEqual(failed, True)
 
@@ -377,14 +381,14 @@ class IndexTestCase(unittest.TestCase):
         try:
             class Movie(Document):
                 structure = {
-                    'standard':unicode,
+                    'standard':str,
                 }
                 indexes = [
                     {
                         'fields':("blah",1),
                     },
                 ]
-        except ValueError, e:
+        except ValueError as e:
             self.assertEqual(str(e), "Error in indexes: can't find blah in structure")
             failed = True
         self.assertEqual(failed, True)
@@ -393,14 +397,14 @@ class IndexTestCase(unittest.TestCase):
         try:
             class Movie(Document):
                 structure = {
-                    'standard':unicode,
+                    'standard':str,
                 }
                 indexes = [
                     {
                         'fields':[('standard',1), ('bla',1)],
                     },
                 ]
-        except ValueError, e:
+        except ValueError as e:
             self.assertEqual(str(e), "Error in indexes: can't find bla in structure")
             failed = True
         self.assertEqual(failed, True)
@@ -409,14 +413,14 @@ class IndexTestCase(unittest.TestCase):
         try:
             class Movie(Document):
                 structure = {
-                    'standard':unicode,
+                    'standard':str,
                 }
                 indexes = [
                     {
                         'fields':[('standard',3)],
                     },
                 ]
-        except BadIndexError, e:
+        except BadIndexError as e:
             self.assertEqual(str(e), "index direction must be INDEX_DESCENDING, INDEX_ASCENDING, INDEX_OFF, INDEX_ALL, INDEX_GEO2D, INDEX_GEOHAYSTACK, or INDEX_GEOSPHERE. Got 3")
             failed = True
         self.assertEqual(failed, True)
@@ -425,14 +429,14 @@ class IndexTestCase(unittest.TestCase):
         try:
             class Movie(Document):
                 structure = {
-                    'standard':unicode,
+                    'standard':str,
                 }
                 indexes = [
                     {
                         'fields':['std'],
                     },
                 ]
-        except ValueError, e:
+        except ValueError as e:
             self.assertEqual(str(e), "Error in indexes: can't find std in structure")
             failed = True
         self.assertEqual(failed, True)
@@ -440,7 +444,7 @@ class IndexTestCase(unittest.TestCase):
     def test_index_ttl(self):
         class Movie(Document):
             structure = {
-                'standard':unicode,
+                'standard':str,
             }
 
             indexes = [
@@ -454,7 +458,7 @@ class IndexTestCase(unittest.TestCase):
         self.connection.register([Movie])
         self.col.Movie.generate_index(self.col)
         movie = self.col.Movie()
-        movie['standard'] = u'test'
+        movie['standard'] = 'test'
         movie.save()
 
         db = self.connection.test
@@ -465,7 +469,7 @@ class IndexTestCase(unittest.TestCase):
     def test_index_simple_inheritance(self):
         class DocA(Document):
             structure = {
-                'standard':unicode,
+                'standard':str,
             }
 
             indexes = [
@@ -477,14 +481,14 @@ class IndexTestCase(unittest.TestCase):
 
         class DocB(DocA):
             structure = {
-                'docb':unicode,
+                'docb':str,
             }
 
         self.connection.register([DocA, DocB])
         self.col.DocB.generate_index(self.col)
         docb = self.col.DocB()
-        docb['standard'] = u'test'
-        docb['docb'] = u'foo'
+        docb['standard'] = 'test'
+        docb['docb'] = 'foo'
         docb.save()
 
         db = self.connection.test
@@ -495,7 +499,7 @@ class IndexTestCase(unittest.TestCase):
     def test_index_inheritance(self):
         class DocA(Document):
             structure = {
-                'standard':unicode,
+                'standard':str,
             }
 
             indexes = [
@@ -507,7 +511,7 @@ class IndexTestCase(unittest.TestCase):
 
         class DocB(DocA):
             structure = {
-                'docb':unicode,
+                'docb':str,
             }
             indexes = [
                 {
@@ -520,8 +524,8 @@ class IndexTestCase(unittest.TestCase):
 
 
         docb = self.col.DocB()
-        docb['standard'] = u'test'
-        docb['docb'] = u'foo'
+        docb['standard'] = 'test'
+        docb['docb'] = 'foo'
         docb.save()
 
         db = self.connection.test
@@ -546,13 +550,13 @@ class IndexTestCase(unittest.TestCase):
 
         mydoc = self.col.MyDoc()
         mydoc['mydoc']['creation_date'] = date
-        mydoc['_id'] = u'aaa'
+        mydoc['_id'] = 'aaa'
         mydoc.save()
 
 
         mydoc3 = self.col.MyDoc()
         mydoc3['mydoc']['creation_date'] = date
-        mydoc3['_id'] = u'bbb'
+        mydoc3['_id'] = 'bbb'
         mydoc3.save()
 
         import time
@@ -561,7 +565,7 @@ class IndexTestCase(unittest.TestCase):
 
         mydoc2 = self.col.MyDoc()
         mydoc2['mydoc']['creation_date'] = date2
-        mydoc2['_id'] = u'aa'
+        mydoc2['_id'] = 'aa'
         mydoc2.save()
 
         time.sleep(1)
@@ -569,7 +573,7 @@ class IndexTestCase(unittest.TestCase):
 
         mydoc4 = self.col.MyDoc()
         mydoc4['mydoc']['creation_date'] = date3
-        mydoc4['_id'] = u'ccc'
+        mydoc4['_id'] = 'ccc'
         mydoc4.save()
 
         self.col.ensure_index([('mydoc.creation_date',-1), ('_id',1)])
@@ -582,37 +586,37 @@ class IndexTestCase(unittest.TestCase):
         import pymongo
         collection = pymongo.Connection()['test']['test_index']
 
-        mydoc = {'mydoc':{'creation_date':date}, '_id':u'aaa'}
+        mydoc = {'mydoc':{'creation_date':date}, '_id':'aaa'}
         collection.insert(mydoc)
 
-        mydoc2 = {'mydoc':{'creation_date':date}, '_id':u'bbb'}
+        mydoc2 = {'mydoc':{'creation_date':date}, '_id':'bbb'}
         collection.insert(mydoc2)
 
         import time
         time.sleep(1)
         date2 = datetime.datetime.utcnow()
 
-        mydoc3 = {'mydoc':{'creation_date':date2}, '_id':u'aa'}
+        mydoc3 = {'mydoc':{'creation_date':date2}, '_id':'aa'}
         collection.insert(mydoc3)
 
         time.sleep(1)
         date3 = datetime.datetime.utcnow()
 
-        mydoc4 = {'mydoc':{'creation_date':date3}, '_id':u'ccc'}
+        mydoc4 = {'mydoc':{'creation_date':date3}, '_id':'ccc'}
         collection.insert(mydoc4)
 
         collection.ensure_index([('mydoc.creation_date',-1), ('_id',1)])
         #print list(collection.database.system.indexes.find())
 
         results = [i['_id'] for i in collection.find().sort([('mydoc.creation_date',-1),('_id',1)])]
-        print results
-        assert results  == [u'ccc', u'aa', u'aaa', u'bbb'], results
+        print(results)
+        assert results == ['ccc', 'aa', 'aaa', 'bbb'], results
 
     def test_index_inheritance2(self):
         class A(Document):
             structure = {
                 'a':{
-                    'title':unicode,
+                    'title':str,
                 }
             }
             indexes = [{'fields':'a.title'}]
@@ -620,7 +624,7 @@ class IndexTestCase(unittest.TestCase):
         class B(A):
             structure = {
                 'b':{
-                    'title':unicode,
+                    'title':str,
                 }
             }
             indexes = [{'fields':'b.title'}]
@@ -629,7 +633,7 @@ class IndexTestCase(unittest.TestCase):
         class C(Document):
             structure = {
                 'c':{
-                    'title':unicode,
+                    'title':str,
                 }
             }
             indexes = [{'fields':'c.title'}]
@@ -637,7 +641,7 @@ class IndexTestCase(unittest.TestCase):
         class D(B, C):
             structure = {
                 'd':{
-                    'title':unicode,
+                    'title':str,
                 }
             }
 
@@ -648,7 +652,7 @@ class IndexTestCase(unittest.TestCase):
     def test_index_with_default_direction(self):
         class MyDoc(Document):
             structure = {
-                'foo': unicode,
+                'foo': str,
                 'bar': int
             }
             indexes = [
@@ -658,7 +662,7 @@ class IndexTestCase(unittest.TestCase):
         self.col.MyDoc.generate_index(self.col)
         for i in range(10):
            doc = self.col.MyDoc()
-           doc['foo'] = unicode(i)
+           doc['foo'] = str(i)
            doc['bar'] = i
            doc.save()
         assert self.col.database.system.indexes.find_one({'name': 'foo_1_bar_-1'})
@@ -676,7 +680,7 @@ class IndexTestCase(unittest.TestCase):
         self.col.MyDoc.generate_index(self.col)
         for i in range(10):
            doc = self.col.MyDoc()
-           doc['foo']['title'] = unicode(i)
+           doc['foo']['title'] = str(i)
            doc['bar'] = i
            doc.save()
         assert self.col.database.system.indexes.find_one({'name': 'foo.title_1'})
@@ -685,7 +689,7 @@ class IndexTestCase(unittest.TestCase):
         @self.connection.register
         class MyDoc(Document):
             structure = {
-                'foo': unicode,
+                'foo': str,
                 'bar': int
             }
             indexes = [
@@ -694,7 +698,7 @@ class IndexTestCase(unittest.TestCase):
         self.col.MyDoc.generate_index(self.col)
         for i in range(10):
            doc = self.col.MyDoc()
-           doc['foo'] = unicode(i)
+           doc['foo'] = str(i)
            doc['bar'] = i
            doc.save()
         assert self.col.database.system.indexes.find_one({'name': 'foo_1'})
@@ -703,7 +707,7 @@ class IndexTestCase(unittest.TestCase):
         @self.connection.register
         class KWDoc(Document):
             structure = {
-                'foo': unicode,
+                'foo': str,
             }
             indexes = [
                 {
@@ -716,5 +720,5 @@ class IndexTestCase(unittest.TestCase):
             ]
         self.col.KWDoc.generate_index(self.col)
         index = self.col.database.system.indexes.find_one({'name': 'additional_kws'})
-        assert index["name"] == u'additional_kws'
+        assert index["name"] == 'additional_kws'
         assert index["dropDups"] is True

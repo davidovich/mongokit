@@ -29,6 +29,8 @@ import unittest
 
 from mongokit import Document, Connection
 
+import six
+
 class InheritedQueriesTestCase(unittest.TestCase):
     def setUp(self):
         self.connection = Connection(safe=True)
@@ -43,10 +45,10 @@ class InheritedQueriesTestCase(unittest.TestCase):
             __database__ = 'test'
             __collection__ = 'mongolite'
             structure = {
-                '_type': unicode,
+                '_type': str,
                 'a':{
                     'foo': int,
-                    'bar': unicode,
+                    'bar': str,
                 }
             }
 
@@ -61,13 +63,13 @@ class InheritedQueriesTestCase(unittest.TestCase):
         doc_a = self.connection.A()
         self.assertEqual(doc_a['_type'], 'A')
         doc_a['a']['foo'] = 3
-        doc_a['a']['bar'] = u'Hello World'
+        doc_a['a']['bar'] = 'Hello World'
         doc_a.save()
 
         doc_b = self.connection.B()
         self.assertEqual(doc_b['_type'], 'B')
         doc_b['a']['foo'] = 42
-        doc_b['a']['bar'] = u'bye bye'
+        doc_b['a']['bar'] = 'bye bye'
         doc_b['b']['eggs'] = 3.14
         doc_b.save()
 
@@ -79,10 +81,10 @@ class InheritedQueriesTestCase(unittest.TestCase):
         @self.connection.register
         class A(Document):
             structure = {
-                '_type': unicode,
+                '_type': str,
                 'a':{
                     'foo': int,
-                    'bar': unicode,
+                    'bar': str,
                 }
             }
 
@@ -97,13 +99,13 @@ class InheritedQueriesTestCase(unittest.TestCase):
         doc_a = self.col.A()
         self.assertEqual(doc_a['_type'], 'A')
         doc_a['a']['foo'] = 3
-        doc_a['a']['bar'] = u'Hello World'
+        doc_a['a']['bar'] = 'Hello World'
         doc_a.save()
 
         doc_b = self.col.B()
         self.assertEqual(doc_b['_type'], 'B')
         doc_b['a']['foo'] = 42
-        doc_b['a']['bar'] = u'bye bye'
+        doc_b['a']['bar'] = 'bye bye'
         doc_b['b']['eggs'] = 3.14
         doc_b.save()
 
@@ -116,10 +118,10 @@ class InheritedQueriesTestCase(unittest.TestCase):
         class A(Document):
             type_field = None
             structure = {
-                '_type': unicode,
+                '_type': str,
                 'a':{
                     'foo': int,
-                    'bar': unicode,
+                    'bar': str,
                 }
             }
 
@@ -134,13 +136,13 @@ class InheritedQueriesTestCase(unittest.TestCase):
         doc_a = self.col.A()
         self.assertEqual(doc_a['_type'], None)
         doc_a['a']['foo'] = 3
-        doc_a['a']['bar'] = u'Hello World'
+        doc_a['a']['bar'] = 'Hello World'
         doc_a.save()
 
         doc_b = self.col.B()
         self.assertEqual(doc_b['_type'], None)
         doc_b['a']['foo'] = 42
-        doc_b['a']['bar'] = u'bye bye'
+        doc_b['a']['bar'] = 'bye bye'
         doc_b['b']['eggs'] = 3.14
         doc_b.save()
 
@@ -155,7 +157,7 @@ class InheritedQueriesTestCase(unittest.TestCase):
             structure = {
                 'a':{
                     'foo': int,
-                    'bar': unicode,
+                    'bar': str,
                 }
             }
 
@@ -170,13 +172,13 @@ class InheritedQueriesTestCase(unittest.TestCase):
         doc_a = self.col.A()
         self.assertTrue('_type' not in doc_a)
         doc_a['a']['foo'] = 3
-        doc_a['a']['bar'] = u'Hello World'
+        doc_a['a']['bar'] = 'Hello World'
         doc_a.save()
 
         doc_b = self.col.B()
         self.assertTrue('_type' not in doc_b)
         doc_b['a']['foo'] = 42
-        doc_b['a']['bar'] = u'bye bye'
+        doc_b['a']['bar'] = 'bye bye'
         doc_b['b']['eggs'] = 3.14
         doc_b.save()
 
@@ -190,11 +192,11 @@ class InheritedQueriesTestCase(unittest.TestCase):
         class A(Document):
             type_field = '_t'
             structure = {
-                '_type': unicode,
-                '_t': unicode,
+                '_type': str,
+                '_t': str,
                 'a':{
                     'foo': int,
-                    'bar': unicode,
+                    'bar': str,
                 }
             }
 
@@ -210,14 +212,14 @@ class InheritedQueriesTestCase(unittest.TestCase):
         self.assertEqual(doc_a['_type'], None)
         self.assertEqual(doc_a['_t'], 'A')
         doc_a['a']['foo'] = 3
-        doc_a['a']['bar'] = u'Hello World'
+        doc_a['a']['bar'] = 'Hello World'
         doc_a.save()
 
         doc_b = self.col.B()
         self.assertEqual(doc_b['_type'], None)
         self.assertEqual(doc_b['_t'], 'B')
         doc_b['a']['foo'] = 42
-        doc_b['a']['bar'] = u'bye bye'
+        doc_b['a']['bar'] = 'bye bye'
         doc_b['b']['eggs'] = 3.14
         doc_b.save()
 

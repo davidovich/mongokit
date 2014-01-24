@@ -33,6 +33,8 @@ logging.basicConfig(level=logging.DEBUG)
 from mongokit import *
 from bson.objectid import ObjectId
 
+import six
+
 admin_created = False
 
 class _ExtMongoDBAuthTestCase(unittest.TestCase):
@@ -69,30 +71,30 @@ class _ExtMongoDBAuthTestCase(unittest.TestCase):
             db_password = "bar"
             structure = {
                 "bla":{
-                    "foo":unicode,
+                    "foo":str,
                     "bar":int,
                 },
                 "spam":[],
             }
         self.connection.register([MyDoc])
         mydoc = self.connection.test.mongokit_auth.MyDoc()
-        mydoc["bla"]["foo"] = u"bar"
+        mydoc["bla"]["foo"] = "bar"
         mydoc["bla"]["bar"] = 42
         id = mydoc.save()
         assert isinstance(id['_id'], ObjectId)
 
         saved_doc = self.collection.find_one({"bla.bar":42})
-        for key, value in mydoc.iteritems():
+        for key, value in six.iteritems(mydoc):
             assert saved_doc[key] == value
 
         mydoc = self.connection.test.mongokit_auth.MyDoc()
-        mydoc["bla"]["foo"] = u"bar"
+        mydoc["bla"]["foo"] = "bar"
         mydoc["bla"]["bar"] = 43
         id = mydoc.save(uuid=False)
         assert isinstance(id['_id'], ObjectId)
 
         saved_doc = self.collection.find_one({"bla.bar":43})
-        for key, value in mydoc.iteritems():
+        for key, value in six.iteritems(mydoc):
             assert saved_doc[key] == value
         self.db.logout()
 
@@ -106,13 +108,13 @@ class _ExtMongoDBAuthTestCase(unittest.TestCase):
             collection_name = "mongokit_auth"
             structure = {
                 "bla":{
-                    "foo":unicode,
+                    "foo":str,
                     "bar":int,
                 },
                 "spam":[],
             }
         mydoc = MyDoc()
-        mydoc["bla"]["foo"] = u"bar"
+        mydoc["bla"]["foo"] = "bar"
         mydoc["bla"]["bar"] = 42
         self.assertRaises(MongoAuthException, mydoc.save)
         self.db.logout()
@@ -125,7 +127,7 @@ class _ExtMongoDBAuthTestCase(unittest.TestCase):
                 db_password = "spam"
                 structure = {
                     "bla":{
-                        "foo":unicode,
+                        "foo":str,
                         "bar":int,
                     },
                     "spam":[],

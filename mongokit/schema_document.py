@@ -32,8 +32,8 @@ from copy import deepcopy
 
 log = logging.getLogger(__name__)
 
-from operators import SchemaOperator, IS
-from helpers import *
+from .operators import SchemaOperator, IS
+from .helpers import *
 
 __all__ = [
     'CustomType',
@@ -93,7 +93,19 @@ class CustomType(object):
         """
         pass
 
-
+_authorized_types = [
+        type(None),
+        bool,
+        int,
+        float,
+        list,
+        dict,
+        datetime.datetime,
+        CustomType,
+        str,
+        bytes,
+    ]
+    
 # field wich does not need to be declared into the structure
 STRUCTURE_KEYWORDS = []
 
@@ -230,7 +242,7 @@ class SchemaProperties(type):
                     raise ValueError("Error in i18n: can't find %s in structure" % i18n)
 
 
-class SchemaDocument(dict):
+class SchemaDocument(dict, metaclass=SchemaProperties):
     """
     A SchemaDocument is dictionary with a building structured schema
     The validate method will check that the document match the underling
@@ -238,7 +250,7 @@ class SchemaDocument(dict):
 
     >>> class TestDoc(SchemaDocument):
     ...     structure = {
-    ...         "foo":unicode,
+    ...         "foo":str,
     ...         "bar":int,
     ...         "nested":{
     ...            "bla":float}}
@@ -301,7 +313,6 @@ class SchemaDocument(dict):
     >>> doc
     {"foo":{"bar":u"bla}}
     """
-    __metaclass__ = SchemaProperties
 
     structure = None
     required_fields = []
@@ -320,19 +331,7 @@ class SchemaDocument(dict):
     use_dot_notation = False
     dot_notation_warning = False
 
-    authorized_types = [
-        type(None),
-        bool,
-        int,
-        long,
-        float,
-        unicode,
-        basestring,
-        list,
-        dict,
-        datetime.datetime,
-        CustomType,
-    ]
+    authorized_types = _authorized_types
 
     def __init__(self, doc=None, gen_skel=True, gen_auth_types=True, validate=True, lang='en', fallback_lang='en'):
         """
@@ -351,7 +350,7 @@ class SchemaDocument(dict):
         self.validation_errors = {}
         # init
         if doc:
-            for k, v in doc.iteritems():
+            for k, v in doc.items():
                 self[k] = v
             gen_skel = False
         if gen_skel:
@@ -478,7 +477,7 @@ class SchemaDocument(dict):
                         raise StructureError("%s: %s is not an authorized type" % (name, struct))
             elif isinstance(struct, dict):
                 for key in struct:
-                    if isinstance(key, basestring):
+                    if isinstance(key, str):
                         if "." in key:
                             raise BadKeyError("%s: %s must not contain '.'" % (name, key))
                         if key.startswith('$'):
@@ -487,7 +486,7 @@ class SchemaDocument(dict):
                         if not key in authorized_types:
                             raise AuthorizedTypeError("%s: %s is not an authorized type" % (name, key))
                     else:
-                        raise StructureError("%s: %s must be a basestring or a type" % (name, key))
+                        raise StructureError("%s: %s must be a string or a type" % (name, key))
                     if struct[key] is None:
                         pass
                     elif isinstance(struct[key], dict):
@@ -642,7 +641,7 @@ class SchemaDocument(dict):
     def _process_validators(self, doc, struct, path=""):
         doted_struct = DotCollapsedDict(self.structure)
         doted_doc = DotCollapsedDict(doc)
-        for key, validators in self.validators.iteritems():
+        for key, validators in self.validators.items():
             if key in doted_doc and doted_doc[key] is not None:
                 if not hasattr(validators, "__iter__"):
                     validators = [validators]
@@ -650,9 +649,9 @@ class SchemaDocument(dict):
                     try:
                         if not validator(doted_doc[key]):
                             raise ValidationError("%s does not pass the validator " + validator.__name__)
-                    except Exception, e:
+                    except Exception as e:
                         self._raise_exception(ValidationError, key,
-                                              unicode(e) % key)
+                                              str(e) % key)
 
     def _process_custom_type(self, target, doc, struct, path="", root_path=""):
         for key in struct:
@@ -912,7 +911,7 @@ class i18n(dict, CustomType):
 
     def to_bson(self, value):
         if value is not None:
-            for l, v in value.iteritems():
+            for l, v in value.items():
                 if isinstance(v, list) and isinstance(self._field_type, list):
                     for i in v:
                         if not isinstance(i, self._field_type[0]):
@@ -922,7 +921,7 @@ class i18n(dict, CustomType):
                     if not isinstance(v, self._field_type):
                         raise SchemaTypeError("%s (%s) must be an instance of %s not %s" % (
                                               self._field_name, l, self._field_type, type(v).__name__))
-            return [{'lang': l, 'value': v} for l, v in value.iteritems()]
+            return [{'lang': l, 'value': v} for l, v in value.items()]
 
     def to_python(self, value):
         if value is not None:

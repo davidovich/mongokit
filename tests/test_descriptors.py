@@ -25,9 +25,13 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import print_function
+
 import unittest
 
 from mongokit import *
+
+import six
 
 class DescriptorsTestCase(unittest.TestCase):
     def setUp(self):
@@ -41,9 +45,9 @@ class DescriptorsTestCase(unittest.TestCase):
         failed = False
         try:
             class MyDoc(Document):
-                structure = {"foo":unicode}
+                structure = {"foo":str}
                 required_fields = ["foo", "foo"]
-        except DuplicateRequiredError, e:
+        except DuplicateRequiredError as e:
             self.assertEqual(str(e), "duplicate required_fields : ['foo', 'foo']")
             failed = True
         self.assertEqual(failed, True)
@@ -51,27 +55,27 @@ class DescriptorsTestCase(unittest.TestCase):
     def test_flat_required(self):
         class MyDoc(Document):
             structure = {
-                "foo":unicode,
+                "foo":str,
             }
             required_fields = ["foo"]
         self.connection.register([MyDoc])
         mydoc = self.col.MyDoc()
         self.assertRaises(RequireFieldError, mydoc.validate )
-        mydoc['foo'] = u'bla'
+        mydoc['foo'] = 'bla'
         mydoc.validate()
 
     def test_nested_required(self):
         class MyDoc(Document):
             structure = {
                 "bla":{
-                    "foo":unicode,
+                    "foo":str,
                 },
             }
             required_fields = ["bla.foo"]
         self.connection.register([MyDoc])
         mydoc = self.col.MyDoc()
         self.assertRaises(RequireFieldError, mydoc.validate )
-        mydoc['bla']['foo'] = u'bla'
+        mydoc['bla']['foo'] = 'bla'
         mydoc.validate()
 
     def test_list_required(self):
@@ -95,7 +99,7 @@ class DescriptorsTestCase(unittest.TestCase):
         self.connection.register([MyDoc])
         mydoc = self.col.MyDoc()
         self.assertRaises(RequireFieldError, mydoc.validate )
-        mydoc['foo'] = {u"3":[u'bla']}
+        mydoc['foo'] = {"3":['bla']}
         mydoc.validate()
 
     def test_dict_required(self):
@@ -107,15 +111,15 @@ class DescriptorsTestCase(unittest.TestCase):
         self.connection.register([MyDoc])
         mydoc = self.col.MyDoc()
         self.assertRaises(RequireFieldError, mydoc.validate )
-        mydoc['foo'] = {u'bar':u'bla'}
+        mydoc['foo'] = {'bar':'bla'}
         self.assertRaises(StructureError, mydoc.validate )
 
     def test_dict_nested_required(self):
         class MyDoc(Document):
             structure = {
-                "foo":{unicode:{"bar":int}}
+                "foo":{str:{"bar":int}}
             }
-            required_fields = ["foo.$unicode.bar"]
+            required_fields = ["foo.$" + ("unicode" if six.PY2 else "str") + ".bar"]
         self.connection.register([MyDoc])
         mydoc = self.col.MyDoc()
         self.assertRaises(RequireFieldError, mydoc.validate )
@@ -124,7 +128,7 @@ class DescriptorsTestCase(unittest.TestCase):
         class MyDoc(Document):
             structure = {
                 "foo":int,
-                "bla":unicode,
+                "bla":str,
             }
             default_values = {"foo":42}
         self.connection.register([MyDoc])
@@ -137,7 +141,7 @@ class DescriptorsTestCase(unittest.TestCase):
             structure = {
                 "bar":{
                     "foo":int,
-                    "bla":unicode,
+                    "bla":str,
                 }
             }
             default_values = {"bar.foo":42}
@@ -162,7 +166,7 @@ class DescriptorsTestCase(unittest.TestCase):
             structure = {
                 "bar":{
                     "foo":int,
-                    "bla":unicode,
+                    "bla":str,
                 }
             }
             default_values = {"bar.foo":42}
@@ -319,23 +323,23 @@ class DescriptorsTestCase(unittest.TestCase):
             default_values = {"foo":{}}
         self.connection.register([MyDoc])
         mydoc = self.col.MyDoc()
-        print id(mydoc.structure['foo']), id(mydoc['foo']), id(mydoc.default_values['foo'])
+        print(id(mydoc.structure['foo']), id(mydoc['foo']), id(mydoc.default_values['foo']))
         assert mydoc["foo"] == {}, mydoc
-        mydoc['foo'][u'bar'] = 1
+        mydoc['foo']['bar'] = 1
         mydoc.save()
         mydoc2 = self.col.MyDoc()
-        print id(mydoc2.structure['foo']), id(mydoc2['foo']), id(mydoc2.default_values['foo'])
+        print(id(mydoc2.structure['foo']), id(mydoc2['foo']), id(mydoc2.default_values['foo']))
         assert mydoc2["foo"] == {}, mydoc
 
         class MyDoc(Document):
             structure = {
-                "foo":{unicode:int}
+                "foo":{str:int}
             }
             default_values = {"foo":{}}
         self.connection.register([MyDoc])
         mydoc = self.col.MyDoc()
         assert mydoc["foo"] == {}, mydoc
-        mydoc['foo'][u'bar'] = 1
+        mydoc['foo']['bar'] = 1
         mydoc.save()
         mydoc2 = self.col.MyDoc()
         assert mydoc2["foo"] == {}, mydoc
@@ -356,9 +360,9 @@ class DescriptorsTestCase(unittest.TestCase):
     def test_default_dict_checked_values(self):
         class MyDoc(Document):
             structure = {
-                "foo":{unicode:int}
+                "foo":{str:int}
             }
-            default_values = {"foo":{u"bar":42}}
+            default_values = {"foo":{"bar":42}}
         self.connection.register([MyDoc])
         mydoc = self.col.MyDoc()
         assert mydoc["foo"] == {"bar":42}, mydoc
@@ -366,28 +370,28 @@ class DescriptorsTestCase(unittest.TestCase):
     def test_default_dict_nested_checked_values(self):
         class MyDoc(Document):
             structure = {
-                "foo":{unicode:{"bla":int, "ble":unicode}}
+                "foo":{str:{"bla":int, "ble":str}}
             }
-            default_values = {"foo":{u"bar":{"bla":42, "ble":u"arf"}}}
+            default_values = {"foo":{"bar":{"bla":42, "ble":"arf"}}}
         mydoc = MyDoc()
-        assert mydoc["foo"] == {u"bar":{"bla":42, "ble":u"arf"}}, mydoc
+        assert mydoc["foo"] == {"bar":{"bla":42, "ble":"arf"}}, mydoc
 
     def test_default_values_with_dict_in_list(self):
         @self.connection.register
         class MyDoc(Document):
             structure = {
-                'bar': [{'foo':unicode}]
+                'bar': [{'foo':str}]
             }
             default_values = {
-                'bar': [{'foo': u'bla'}]
+                'bar': [{'foo': 'bla'}]
             }
         doc = self.col.MyDoc()
-        assert doc['bar'] == [{'foo': u'bla'}]
+        assert doc['bar'] == [{'foo': 'bla'}]
 
     def test_validators(self):
         class MyDoc(Document):
             structure = {
-                "foo":unicode,
+                "foo":str,
                 "bar":{
                     "bla":int
                 }
@@ -398,9 +402,9 @@ class DescriptorsTestCase(unittest.TestCase):
             }
         self.connection.register([MyDoc])
         mydoc = self.col.MyDoc()
-        mydoc["foo"] = u"google.com"
+        mydoc["foo"] = "google.com"
         self.assertRaises(ValidationError, mydoc.validate)
-        mydoc["foo"] = u"http://google.com"
+        mydoc["foo"] = "http://google.com"
         mydoc.validate()
         mydoc['bar']['bla'] = 2
         self.assertRaises(ValidationError, mydoc.validate)
@@ -424,18 +428,18 @@ class DescriptorsTestCase(unittest.TestCase):
     def test_multiple_validators(self):
         class MyDoc(Document):
             structure = {
-                "foo":unicode,
+                "foo":str,
             }
             validators = {
                 "foo":[lambda x: x.startswith("http://"),lambda x: x.endswith(".com")],
             }
         self.connection.register([MyDoc])
         mydoc = self.col.MyDoc()
-        mydoc["foo"] = u"google.com"
+        mydoc["foo"] = "google.com"
         self.assertRaises(ValidationError, mydoc.validate)
-        mydoc["foo"] = u"http://google.fr"
+        mydoc["foo"] = "http://google.fr"
         self.assertRaises(ValidationError, mydoc.validate)
-        mydoc["foo"] = u"http://google.com"
+        mydoc["foo"] = "http://google.com"
         mydoc.validate()
 
     def test_validators_with_custom_validation_message(self):
@@ -451,35 +455,35 @@ class DescriptorsTestCase(unittest.TestCase):
 
         class Client(Document):
             structure = {
-              'first_name': unicode
+              'first_name': str
             }
             validators = {
               'first_name': MinLengthValidator(2)
             }
         self.connection.register([Client])
         client = self.col.Client()
-        client['first_name'] = u'Georges'
+        client['first_name'] = 'Georges'
         client.validate()
-        client['first_name'] = u'J'
+        client['first_name'] = 'J'
         self.assertRaises(Exception, client.validate)
         message = ""
         try:
             client.validate()
-        except Exception, e:
-            message = unicode(e)
+        except Exception as e:
+            message = str(e)
         assert message == "first_name must be atleast 2 characters long.", message
 
     def test_complexe_validation(self):
         class MyDoc(Document):
             structure = {
-                "foo":unicode,
+                "foo":str,
                 "bar":{
                     "bla":int
                 }
             }
             def validate(self):
                 if self['bar']['bla']:
-                    self['foo'] = unicode(self['bar']['bla'])
+                    self['foo'] = str(self['bar']['bla'])
                 else:
                     self['foo'] = None
                 super(MyDoc, self).validate()
@@ -498,13 +502,13 @@ class DescriptorsTestCase(unittest.TestCase):
 
         class MyDoc(Document):
             structure = {
-                "foo":unicode,
-                "bar":{"bla":unicode}
+                "foo":str,
+                "bar":{"bla":str}
             }
             default_values = {"bar.bla":3}
             def validate(self):
-                self["bar"]["bla"] = unicode(self["bar"]["bla"])
-                self["foo"] = unicode(self["foo"])
+                self["bar"]["bla"] = str(self["bar"]["bla"])
+                self["foo"] = str(self["foo"])
                 super(MyDoc, self).validate()
 
         self.connection.register([MyDoc])
@@ -517,15 +521,15 @@ class DescriptorsTestCase(unittest.TestCase):
     def test_complexe_validation3(self):
         class MyDoc(Document):
             structure = {
-                "foo":unicode,
+                "foo":str,
                 "bar":{
                     "bla":int
                 },
-                "ble":unicode,
+                "ble":str,
             }
             def validate(self):
                 if self['bar']['bla'] is not None:
-                    self['foo'] = unicode(self['bar']['bla'])
+                    self['foo'] = str(self['bar']['bla'])
                 else:
                     self['foo'] = None
                 self["ble"] = self["foo"]
@@ -551,7 +555,7 @@ class DescriptorsTestCase(unittest.TestCase):
                     "foo":{"bar":int},
                 }
                 default_values = {"foo.bla":2}
-        except ValueError, e:
+        except ValueError as e:
             failed = True
             self.assertEqual(str(e), "Error in default_values: can't find foo.bla in structure")
         self.assertEqual(failed, True)
@@ -564,7 +568,7 @@ class DescriptorsTestCase(unittest.TestCase):
                     "foo":{"bar":int},
                 }
                 validators = {"foo.bla":lambda x:x}
-        except ValueError, e:
+        except ValueError as e:
             failed = True
             self.assertEqual(str(e), "Error in validators: can't find foo.bla in structure")
         self.assertEqual(failed, True)
@@ -577,12 +581,12 @@ class DescriptorsTestCase(unittest.TestCase):
                 collection_name = "mongokit"
                 structure = {
                     "profil":{
-                        "screen_name":unicode,
+                        "screen_name":str,
                         "age":int
                     }
                 }
                 required_fields = ['profil.screen_nam']
-        except ValueError, e:
+        except ValueError as e:
             failed = True
             self.assertEqual(str(e), "Error in required_fields: can't find profil.screen_nam in structure")
         self.assertEqual(failed, True)
@@ -592,9 +596,12 @@ class DescriptorsTestCase(unittest.TestCase):
             db_name = "test"
             collection_name = "mongokit"
             structure = {
-                unicode:{int:int}
+                str:{int:int}
             }
 
         mydoc = MyDoc()
-        assert mydoc._namespaces == ['$unicode', '$unicode.$int']
+        if six.PY2:
+            assert mydoc._namespaces == ['$unicode', '$unicode.$int']
+        else:
+            assert mydoc._namespaces == ['$str', '$str.$int']
 

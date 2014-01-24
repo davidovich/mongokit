@@ -26,8 +26,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from pymongo.collection import Collection as PymongoCollection
-from mongo_exceptions import MultipleResultsFound
-from cursor import Cursor
+from .mongo_exceptions import MultipleResultsFound
+from .cursor import Cursor
 
 from warnings import warn
 
@@ -55,7 +55,7 @@ class Collection(PymongoCollection):
                 #self._documents[key].generate_index(self)
             return self._documents[key]
         else:
-            newkey = u"%s.%s" % (self.name, key)
+            newkey = "%s.%s" % (self.name, key)
             if not newkey in self._collections:
                 self._collections[newkey] = Collection(self.database, newkey)
             return self._collections[newkey]
