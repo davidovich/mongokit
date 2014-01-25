@@ -82,14 +82,7 @@ class MongoKitConnection(object):
                     if obj.__name__ in col._registered_documents:
                         del col._registered_documents[obj.__name__]
         
-        # register
-        for obj in obj_list:
-            CallableDocument = type(
-                "Callable%s" % obj.__name__,
-                (obj, CallableMixin),
-                {"_obj_class": obj, "__repr__": object.__repr__}
-            )
-            self._registered_documents[obj.__name__] = CallableDocument
+
         # if the class object is stored, it means the user used a decorator and
         # we must return the class object
         if decorator is not None:
