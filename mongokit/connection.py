@@ -55,8 +55,18 @@ class MongoKitConnection(object):
     def __init__(self, *args, **kwargs):
         self._databases = {}
         self._registered_documents = {}
+        self.to_register = []
 
-    def register(self, obj_list):
+    def register(self, *args, **kwargs):
+        #we have a decorator call if args are None
+        if not args and kwargs:
+            def inner_register(obj_list):
+                return self.register(obj_list, postponed = kwargs.pop('postponed', False))
+            return inner_register
+       
+        obj_list = args[0]
+        postponed = kwargs.pop('postponed', False)
+        
         decorator = None
         if not isinstance(obj_list, _iterables):
             # we assume that the user used this as a decorator
@@ -71,6 +81,7 @@ class MongoKitConnection(object):
                 for obj in obj_list:
                     if obj.__name__ in col._registered_documents:
                         del col._registered_documents[obj.__name__]
+        
         # register
         for obj in obj_list:
             CallableDocument = type(
@@ -83,6 +94,22 @@ class MongoKitConnection(object):
         # we must return the class object
         if decorator is not None:
             return decorator
+
+    def perform_registrations(self, obj_list=None):
+
+        docs_to_register = obj_list if obj_list else self.to_register
+        # register
+        for obj in docs_to_register:
+            CallableDocument = type(
+              "Callable%s" % obj.__name__,
+              (obj, CallableMixin),
+              {"_obj_class":obj, "__repr__":object.__repr__}
+            )
+            self._registered_documents[obj.__name__] = CallableDocument
+
+        if not obj_list:
+            del self.to_register
+
 
     def __getattr__(self, key):
         if key in self._registered_documents:
