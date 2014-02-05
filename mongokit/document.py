@@ -519,7 +519,7 @@ class Document(SchemaDocument, metaclass=DocumentProperties):
                                 l_objs.append(obj)
                             doc[key] = l_objs
                         elif isinstance(struct[key][0], dict):
-                            if doc[key]:
+                            if key in doc:
                                 for obj in doc[key]:
                                     _convert_to_python(obj, struct[key][0])
                 else:
@@ -577,7 +577,7 @@ class Document(SchemaDocument, metaclass=DocumentProperties):
                                 l_objs.append(obj)
                             doc[key] = l_objs
                         elif isinstance(struct[key][0], dict):
-                            if doc[key]:
+                            if key in doc:
                                 for obj in doc[key]:
                                     _convert_to_python(obj, struct[key][0], new_path, root_path)
                 elif struct[key] is datetime.datetime and doc[key] is not None:
@@ -599,18 +599,28 @@ class Document(SchemaDocument, metaclass=DocumentProperties):
                     #_id = obj_class(doc[key], collection=self.connection[db][col])[id_ref]
                     _id = doc[key][id_ref]
                     doc[key] = getattr(self.connection[db][col], obj_class.__name__).one({'_id': _id})
+
+        if isinstance(json, basestring):
+            try:
+                from json import loads
+            except ImportError:
+                from anyjson import deserialize as loads
+            except ImportError:
+                raise ImportError("can't import anyjson. Please install it before continuing.")
+            obj = loads(json)
+        else:
+            obj = json
+
         try:
-            from json import loads
-        except ImportError:
-            from anyjson import deserialize as loads
-        except ImportError:
-            raise ImportError("can't import anyjson. Please install it before continuing.")
-        obj = loads(json)
-        _convert_to_python(obj, self.structure)
+            _convert_to_python(obj, self.structure)
+        except Exception:
+            raise TypeError("json object could not be mapped to document. It should be a json parsable string or a json_type (python type json compatible)")
+
         if '_id' in obj:
-            if '$oid' in obj['_id']:
+            if isinstance(obj['_id'], dict) and '$oid' in obj['_id']:
                 obj['_id'] = ObjectId(obj['_id']['$oid'])
         return self._obj_class(obj, collection=self.collection)
+
 
     #
     # End of public API

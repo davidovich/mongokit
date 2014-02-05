@@ -11,7 +11,7 @@ but also for all your `CustomTypes` you may have built and your embedded objects
 
 :`to_json`:
 
-`to_json` is a simply method which export you document into a JSON document:
+`to_json` is a simply method which exports your document into a JSON document:
 
 >>> class MyDoc(Document):
 ...         structure = {
@@ -49,6 +49,21 @@ To load a JSON string into a ``Document``, use the `from_json` class method:
 >>> mydoc
 {'_id': 'mydoc', 'bla': {'foo': 'bar', 'bar': 42}, 'spam': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}
 
+`from_json` also accepts valid python json types (valid python objects that are json compatible):
+
+>>> json = {"_id": "mydoc", "bla": {"foo": "bar"}, "spam": [0,1,2]}
+>>> mydoc = tutorial.MyDoc.from_json(json)
+
+`from_json` will not invalidate the document if there are non-required missing fields in the source json:
+
+>>> incomplete_fields = {"_id": "mydoc", "spam": [0,1,2] }
+>>> mydoc = tutorial.MyDoc.from_json(incomplete_fields)
+>>> mydoc.validate()
+>>> "spam" in mydoc
+True 
+
+Of course, a required field must still be present in the json source.
+
 Note that `from_json` will take care of all your embedded `Document`\ s if you used the `to_json()` method to
 generated the JSON. Indeed, some extra value has to be set : the database and the collection where
 the embedded document lives. This is added by the `to_json()` method:
@@ -77,14 +92,14 @@ Let's create an embed doc:
 >>> embed['foo'] = u"bar"
 >>> embed.save()
 
-and embed this doc to another doc
+and embed this doc in another doc
 
 >>> mydoc = tutorial.MyDoc()
 >>> mydoc['_id'] = u'mydoc'
 >>> mydoc['doc']['embed'] = embed
 >>> mydoc.save()
 
-Now let's see how look the generated json:
+Now let's see how the generated json looks like:
 
 >>> json = mydoc.to_json()
 >>> json
@@ -99,7 +114,7 @@ document. These are removed when calling the `from_json()` method:
 >>> mydoc
 {u'doc': {u'embed': {u'_id': u'embed', u'foo': u'bar'}}, u'_id': u'mydoc'}
 
-An the embed document is an instance of EmbedDoc:
+And the embed document is an instance of EmbedDoc:
 
 >>> isinstance(mydoc['doc']['embed'], EmbedDoc)
 True
@@ -108,7 +123,7 @@ ObjectId support
 ----------------
 
 `from_json()` can detect if the `_id` is an ``ObjectId`` instance or a simple string. When you serialize an object
-with ``ObjectId`` instance to json, the generated json object look like this:
+with ``ObjectId`` instance to json, the generated json object looks like this:
 
     '{"_id": {"$oid": "..."}, ...}'
 

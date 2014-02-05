@@ -592,9 +592,9 @@ class SchemaDocument(dict, metaclass=SchemaProperties):
                 struct_doc_diff = list(set(struct).difference(set(doc)))
                 if struct_doc_diff:
                     for field in struct_doc_diff:
-                        if (type(field) is not type) and (not self.use_schemaless):
+                        if (type(field) is not type) and (not self.use_schemaless) and field in self.required_fields:
                             self._raise_exception(StructureError, None,
-                                                  "missed fields %s in %s" % (struct_doc_diff, type(doc).__name__))
+                              "missed fields : %s" % list(set(self.required_fields).intersection(set(struct_doc_diff))) )
                 else:
                     struct_struct_diff = list(set(doc).difference(set(struct)))
                     bad_fields = [s for s in struct_struct_diff if s not in STRUCTURE_KEYWORDS]
