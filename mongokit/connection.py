@@ -81,8 +81,12 @@ class MongoKitConnection(object):
                 for obj in obj_list:
                     if obj.__name__ in col._registered_documents:
                         del col._registered_documents[obj.__name__]
-        
 
+        if postponed:
+            self.to_register.extend(obj_list)
+        else:
+            self.perform_registrations(obj_list)
+        
         # if the class object is stored, it means the user used a decorator and
         # we must return the class object
         if decorator is not None:
