@@ -600,7 +600,7 @@ class Document(SchemaDocument, metaclass=DocumentProperties):
                     _id = doc[key][id_ref]
                     doc[key] = getattr(self.connection[db][col], obj_class.__name__).one({'_id': _id})
 
-        if isinstance(json, basestring):
+        if isinstance(json, str):
             try:
                 from json import loads
             except ImportError:
